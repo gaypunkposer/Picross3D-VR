@@ -16,6 +16,7 @@ public class PuzzleCreatorEditor : EditorWindow {
     bool keep;
     Material material;
     SceneSetup[] currentScene;
+    int numberCount;
 
     [MenuItem("Window/Puzzle Creator")]
     static void Enable()
@@ -31,6 +32,7 @@ public class PuzzleCreatorEditor : EditorWindow {
         EditorSceneManager.SaveOpenScenes();
         currentScene = EditorSceneManager.GetSceneManagerSetup();
         EditorSceneManager.OpenScene("Assets/PuzzleEditor/PuzzleEditorScene.unity");
+        parent = GameObject.Find("Puzzle Creator Parent").transform;
     }
 
     private void OnEnable()
@@ -56,13 +58,14 @@ public class PuzzleCreatorEditor : EditorWindow {
 
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Create Puzzle")) {
+            if (GUILayout.Button("Create Puzzle")) 
+            {
                 CreatePuzzleBase(puzzleDimensions);
             }
         }
         else {
             creator.PuzzleName = EditorGUILayout.TextField("Puzzle Name", creator.PuzzleName);
-            
+            parent.name = creator.PuzzleName;
 
             EditorGUILayout.Space();
 
@@ -81,7 +84,7 @@ public class PuzzleCreatorEditor : EditorWindow {
 
 
 
-            keep = EditorGUILayout.Toggle("Keep", CheckSelection());
+            keep = EditorGUILayout.Toggle("Keep", CheckSelectionKeep());
             material = (Material)EditorGUILayout.ObjectField("Material", material, typeof(Material), false);
 
             foreach (Transform t in Selection.transforms)
@@ -96,8 +99,30 @@ public class PuzzleCreatorEditor : EditorWindow {
 
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Reset Puzzle")) {
+
+            if (numberCount > 0) 
+            {
+                int number;
+                for (int i = 0; i < numberCount; i++) 
+                {
+                    number = EditorGUILayout.IntField()
+                }
+            }
+
+
+            if (GUILayout.Button("Add Number")) 
+            {
+                numberCount++;
+                foreach (Transform t in Selection.transforms) 
+                {
+                    creator.Numbers.Add(creator.Blocks[t.gameObject], new NumberProperties());
+                }
+            }
+
+            if (GUILayout.Button("Reset Puzzle")) 
+            {
                 EditorWindow.GetWindow<ResetConfirmWindow>();
+                parent.name = "Puzzle Creator Parent";
             }
 
         }
@@ -116,7 +141,7 @@ public class PuzzleCreatorEditor : EditorWindow {
         puzzleCreatorEditor.ResetPuzzle();
     }
 
-    bool CheckSelection()
+    bool CheckSelectionKeep()
     {
         foreach (Transform t in Selection.transforms)
         {
@@ -126,6 +151,11 @@ public class PuzzleCreatorEditor : EditorWindow {
             }
         }
         return true;
+    }
+
+    int CheckSelectionNumber() 
+    {
+        int number = creator.Numbers.
     }
 
     void ResetPuzzle() {
@@ -183,6 +213,7 @@ public class PuzzleCreator
 {
 
     public Dictionary<GameObject, BlockProperties> Blocks = new Dictionary<GameObject, BlockProperties>();
+    public Dictionary<BlockProperties, NumberProperties> Numbers = new Dictionary<BlockProperties, NumberProperties>();
     public GameObject Cube;
     public bool PuzzleCreated;
     public string PuzzleName;
