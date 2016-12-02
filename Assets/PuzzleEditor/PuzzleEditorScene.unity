@@ -101,7 +101,7 @@ GameObject:
   - component: {fileID: 839211580}
   - component: {fileID: 839211579}
   m_Layer: 0
-  m_Name: PuzzleCreatorParent
+  m_Name: Puzzle Creator Parent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -118,7 +118,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 100c681667e6cbc49b45f28e81f764f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Cube: {fileID: 1370803882436728, guid: fbc24e39438a5af40860a96df2666d83, type: 2}
+  Cube: {fileID: 0, guid: fbc24e39438a5af40860a96df2666d83, type: 2}
+  PuzzleCreated: 0
+  PuzzleName: Puzzle
 --- !u!4 &839211580
 Transform:
   m_ObjectHideFlags: 0
@@ -126,7 +128,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 839211578}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.0675137, y: -0.7519399, z: -2.1526096}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

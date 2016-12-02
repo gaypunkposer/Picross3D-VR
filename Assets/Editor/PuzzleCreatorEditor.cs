@@ -2,24 +2,48 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
-[CustomEditor(typeof(PuzzleCreator))]
-public class PuzzleCreatorEditor : Editor {
+
+public class PuzzleCreatorEditor : EditorWindow {
 
     PuzzleCreator creator;
     Vector3 puzzleDimensions;
+    static PuzzleCreatorEditor puzzleCreatorEditor;
+    bool showPosition;
+    Vector2 scrollPos;
+    Transform parent;
+    bool keep;
+    Material material;
+    SceneSetup[] currentScene;
 
+    [MenuItem("Window/Puzzle Creator")]
+    static void Enable()
+    {
+        puzzleCreatorEditor = (PuzzleCreatorEditor)EditorWindow.GetWindow<PuzzleCreatorEditor>();
+        puzzleCreatorEditor.Init();
+        puzzleCreatorEditor.name = "Puzzle Creator Editor";
+        puzzleCreatorEditor.autoRepaintOnSceneChange = true;
+    }
+
+    void Init()
+    {
+        EditorSceneManager.SaveOpenScenes();
+        currentScene = EditorSceneManager.GetSceneManagerSetup();
+        EditorSceneManager.OpenScene("Assets/PuzzleEditor/PuzzleEditorScene.unity");
+    }
 
     private void OnEnable()
     {
-        
+        creator = new PuzzleCreator();
+        parent = GameObject.Find("Puzzle Creator Parent").transform;
     }
 
-    public override void OnInspectorGUI()
+    public void OnGUI()
     {
-        creator = (PuzzleCreator)target;
+        
         if (!creator.PuzzleCreated){
-            creator.transform.name = "Puzzle Creator Parent";
+            
             creator.Cube = (GameObject)EditorGUILayout.ObjectField("Cube Prefab", creator.Cube, typeof(GameObject), false);
             EditorGUILayout.Space();
 
@@ -38,21 +62,73 @@ public class PuzzleCreatorEditor : Editor {
         }
         else {
             creator.PuzzleName = EditorGUILayout.TextField("Puzzle Name", creator.PuzzleName);
-            creator.transform.name = creator.PuzzleName;
+            
+
+            EditorGUILayout.Space();
+
+
+            showPosition = EditorGUILayout.Foldout(showPosition, "Selection");
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+            if (showPosition)
+            {
+                foreach (Transform t in Selection.transforms)
+                {
+                    EditorGUILayout.ObjectField("Pos: " + t.position, t.gameObject, typeof(GameObject), false);
+                }
+            }
+            EditorGUILayout.EndScrollView();
+            EditorGUILayout.Space();
+
+
+
+            keep = EditorGUILayout.Toggle("Keep", CheckSelection());
+            material = (Material)EditorGUILayout.ObjectField("Material", material, typeof(Material), false);
+
+            foreach (Transform t in Selection.transforms)
+            {
+                creator.Blocks[t.gameObject].Keep = keep;
+                creator.Blocks[t.gameObject].Material = material;
+            }
+
+            keep = false;
+            material = null;
+
 
             EditorGUILayout.Space();
 
             if (GUILayout.Button("Reset Puzzle")) {
-                ResetPuzzle();
+                EditorWindow.GetWindow<ResetConfirmWindow>();
             }
-            
-        
+
         }
 
 
     }
 
-    static void ResetPuzzle() {
+
+    private void OnDestroy()
+    {
+        EditorSceneManager.RestoreSceneManagerSetup(currentScene);
+    }
+
+    public static void ResetPuzzleConfirm()
+    {
+        puzzleCreatorEditor.ResetPuzzle();
+    }
+
+    bool CheckSelection()
+    {
+        foreach (Transform t in Selection.transforms)
+        {
+            if (!creator.Blocks[t.gameObject].Keep)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void ResetPuzzle() {
         foreach (GameObject gobject in creator.Blocks.Keys) {
             DestroyImmediate(gobject);
         }
@@ -68,7 +144,7 @@ public class PuzzleCreatorEditor : Editor {
             dimensions.x = (dimensions.x / 2);
             dimensions.y = (dimensions.y / 2);
             dimensions.z = (dimensions.z / 2);
-
+            
 
             for (int x = -(int)dimensions.x; x < dimensions.x; x++)
             {
@@ -76,26 +152,38 @@ public class PuzzleCreatorEditor : Editor {
                 {
                     for (int z = -(int)dimensions.z; z < dimensions.z; z++)
                     {
-                        GameObject gobject = Instantiate(creator.Cube, new Vector3(x, y, z), Quaternion.identity, creator.transform) as GameObject;
+                        
+                        GameObject gobject = Instantiate(creator.Cube, new Vector3(x, y, z), Quaternion.identity, parent) as GameObject;
+                        gobject.name = "Cube: " + new Vector3(x, y, z);
                         creator.Blocks.Add(gobject, new BlockProperties(new Vector3(x,y,z)));
                     }
                 }
             }
         }
         else {
-            Debug.Log("Cube Prefab cannot be null");
+            Debug.LogError("Cube Prefab cannot be null");
         }
     }
 }
 
 public class ResetConfirmWindow : EditorWindow {
-    
-    static ResetConfirmWindow window;
-    public static void OnEnable() {
-        window = (ResetConfirmWindow)GetWindow(typeof(ResetConfirmWindow), true, "Reset Puzzle Confirmation");
-    }
 
-    private void OnGUI() {
-
+    void OnGUI()
+    {
+        GUILayout.Label("Are you sure you want to reset the puzzle?");
+        if (GUILayout.Button("Yes"))
+        {
+            PuzzleCreatorEditor.ResetPuzzleConfirm();
+            this.Close();
+        }
     }
+}
+
+public class PuzzleCreator
+{
+
+    public Dictionary<GameObject, BlockProperties> Blocks = new Dictionary<GameObject, BlockProperties>();
+    public GameObject Cube;
+    public bool PuzzleCreated;
+    public string PuzzleName;
 }
