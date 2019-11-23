@@ -105,7 +105,7 @@ public class PuzzleCreatorEditor : EditorWindow {
                 int number;
                 for (int i = 0; i < numberCount; i++) 
                 {
-                    number = EditorGUILayout.IntField()
+                    //number = EditorGUILayout.IntField()
                 }
             }
 
@@ -155,7 +155,8 @@ public class PuzzleCreatorEditor : EditorWindow {
 
     int CheckSelectionNumber() 
     {
-        int number = creator.Numbers.
+        //int number = creator.Numbers.
+        return 0;
     }
 
     void ResetPuzzle() {
